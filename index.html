@@ -1,0 +1,771 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Controle de Vendas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .controls {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    .delete-btn {
+      background-color: #e74c3c;
+    }
+
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+
+    .back-btn {
+      background-color: #95a5a6;
+    }
+
+    .back-btn:hover {
+      background-color: #7f8c8d;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #3498db;
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    tr:hover {
+      background-color: #f5f5f5;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #2c3e50;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .summary {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #edf7ff;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .total {
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    .status-pago {
+      color: #27ae60;
+    }
+
+    .status-pendente {
+      color: #e67e22;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .new-row {
+      animation: fadeIn 0.5s;
+    }
+
+    .filter-controls {
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 4px;
+      display: flex;
+      gap: 15px;
+    }
+
+    .filter-controls .form-group {
+      flex: 1;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .import-btn {
+      background-color: #27ae60;
+    }
+
+    .import-btn:hover {
+      background-color: #219a52;
+    }
+
+    .context-menu {
+      position: fixed;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 5px 0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      display: none;
+      z-index: 1000;
+    }
+
+    .context-menu button {
+      display: block;
+      width: 100%;
+      padding: 8px 15px;
+      text-align: left;
+      background: none;
+      color: #333;
+      border: none;
+      cursor: pointer;
+    }
+
+    .context-menu button:hover {
+      background: #f0f0f0;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1001;
+    }
+
+    .modal-content {
+      position: relative;
+      background: white;
+      margin: 15% auto;
+      padding: 20px;
+      width: 80%;
+      max-width: 500px;
+      border-radius: 8px;
+    }
+
+    #clienteSummary {
+      margin-bottom: 20px;
+      background-color: #fff3cd;
+      border: 1px solid #ffeeba;
+    }
+
+    .icon-button {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .icon-button img {
+      width: 20px;
+      height: 20px;
+    }
+
+    .icon-button:hover {
+      background-color: #2980b9;
+    }
+
+    .backup-controls {
+      display: flex;
+      gap: 10px;
+      margin-left: auto;
+    }
+
+    .project-btn {
+      background-color: #9b59b6;
+    }
+
+    .project-btn:hover {
+      background-color: #8e44ad;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Controle de Vendas</h1>
+    
+    <div class="controls">
+      <button onclick="showForm()">Nova Venda</button>
+      <button class="back-btn" onclick="voltar()">Voltar</button>
+      <button onclick="exportToCSV()">Exportar CSV</button>
+      <input type="file" id="fileInput" accept=".csv" onchange="importFromCSV(this)">
+      <button class="import-btn" onclick="document.getElementById('fileInput').click()">Importar CSV</button>
+      
+      <div class="backup-controls">
+        <button class="icon-button" onclick="createBackup()">
+          <img src="diskette.png" alt="Backup">
+          Backup
+        </button>
+        <button class="icon-button project-btn" onclick="exportProject()">
+          Exportar Projeto
+        </button>
+        <input type="file" id="projectInput" accept=".json" style="display: none;" onchange="importProject(this)">
+        <button class="icon-button project-btn" onclick="document.getElementById('projectInput').click()">
+          Importar Projeto
+        </button>
+      </div>
+    </div>
+
+    <div class="filter-controls">
+      <div class="form-group">
+        <label>Filtrar por status:</label>
+        <select id="filtroStatus" onchange="filtrarVendas()">
+          <option value="todos">Todos</option>
+          <option value="pago">Pagos</option>
+          <option value="pendente">A Receber</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>Filtrar por mês:</label>
+        <select id="filtroMes" onchange="filtrarVendas()">
+          <option value="todos">Todos</option>
+          <option value="1">Janeiro</option>
+          <option value="2">Fevereiro</option>
+          <option value="3">Março</option>
+          <option value="4">Abril</option>
+          <option value="5">Maio</option>
+          <option value="6">Junho</option>
+          <option value="7">Julho</option>
+          <option value="8">Agosto</option>
+          <option value="9">Setembro</option>
+          <option value="10">Outubro</option>
+          <option value="11">Novembro</option>
+          <option value="12">Dezembro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Filtrar por cliente:</label>
+        <select id="filtroCliente" onchange="filtrarVendas()">
+          <option value="todos">Todos</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="clienteSummary" style="display: none;" class="summary">
+      <p>Total a Receber do Cliente: <span id="totalReceberCliente" class="total">R$ 0,00</span></p>
+    </div>
+
+    <div id="vendaForm" style="display: none;">
+      <div class="form-group">
+        <label>Data da Venda</label>
+        <input type="date" id="data">
+      </div>
+      <div class="form-group">
+        <label>Cliente</label>
+        <input type="text" id="cliente">
+      </div>
+      <div class="form-group">
+        <label>Produto</label>
+        <input type="text" id="produto">
+      </div>
+      <div class="form-group">
+        <label>Quantidade</label>
+        <input type="number" id="quantidade">
+      </div>
+      <div class="form-group">
+        <label>Valor Unitário</label>
+        <input type="number" step="0.01" id="valorUnitario">
+      </div>
+      <div class="form-group">
+        <label>Status do Pagamento</label>
+        <select id="statusPagamento">
+          <option value="pago">Pago</option>
+          <option value="pendente">A Receber</option>
+        </select>
+      </div>
+      <div class="form-group" id="dataRecebimentoGroup" style="display: none;">
+        <label>Data Prevista de Recebimento</label>
+        <input type="date" id="dataRecebimento">
+      </div>
+      <button onclick="adicionarVenda()">Adicionar Venda</button>
+    </div>
+
+    <table id="tabelaVendas">
+      <thead>
+        <tr>
+          <th>Data da Venda</th>
+          <th>Cliente</th>
+          <th>Produto</th>
+          <th>Quantidade</th>
+          <th>Valor Unitário</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Data de Recebimento</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="summary">
+      <p>Total de Vendas: <span id="totalVendas" class="total">R$ 0,00</span></p>
+      <p>Total a Receber: <span id="totalReceber" class="total">R$ 0,00</span></p>
+      <p>Total Recebido: <span id="totalRecebido" class="total">R$ 0,00</span></p>
+    </div>
+  </div>
+
+  <script>
+    let vendas = [];
+    let contextMenu = null;
+    let activeVendaIndex = null;
+    let pressTimer = null;
+
+    window.addEventListener('load', () => {
+      const savedVendas = localStorage.getItem('vendas');
+      if (savedVendas) {
+        vendas = JSON.parse(savedVendas);
+        vendas = vendas.map(venda => {
+          if (venda.statusPagamento === 'arquivado') {
+            venda.statusPagamento = 'pendente';
+          }
+          return venda;
+        });
+        atualizarTabela();
+        atualizarFiltroClientes();
+      }
+      // Set default date to today
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('data').value = today;
+    });
+
+    function showForm() {
+      const form = document.getElementById('vendaForm');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+
+    document.getElementById('statusPagamento').addEventListener('change', function (e) {
+      const dataRecebimentoGroup = document.getElementById('dataRecebimentoGroup');
+      dataRecebimentoGroup.style.display = e.target.value === 'pendente' ? 'block' : 'none';
+    });
+
+    function formatarMoeda(valor) {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(valor);
+    }
+
+    function adicionarVenda() {
+      const data = document.getElementById('data').value;
+      const cliente = document.getElementById('cliente').value;
+      const produto = document.getElementById('produto').value;
+      const quantidade = parseFloat(document.getElementById('quantidade').value);
+      const valorUnitario = parseFloat(document.getElementById('valorUnitario').value);
+      const statusPagamento = document.getElementById('statusPagamento').value;
+      const dataRecebimento = document.getElementById('dataRecebimento').value;
+
+      if (!data || !cliente || !produto || !quantidade || !valorUnitario) {
+        alert('Por favor, preencha todos os campos!');
+        return;
+      }
+
+      if (statusPagamento === 'pendente' && !dataRecebimento) {
+        alert('Por favor, informe a data prevista de recebimento!');
+        return;
+      }
+
+      const venda = {
+        data: data,  
+        cliente,
+        produto,
+        quantidade,
+        valorUnitario,
+        total: Number((quantidade * valorUnitario).toFixed(2)),
+        statusPagamento,
+        dataRecebimento: statusPagamento === 'pendente' ? dataRecebimento : ''  
+      };
+
+      vendas.push(venda);
+      localStorage.setItem('vendas', JSON.stringify(vendas));
+      atualizarTabela();
+      limparFormulario();
+      showForm();
+      atualizarFiltroClientes();
+    }
+
+    function limparFormulario() {
+      document.getElementById('data').value = '';
+      document.getElementById('cliente').value = '';
+      document.getElementById('produto').value = '';
+      document.getElementById('quantidade').value = '';
+      document.getElementById('valorUnitario').value = '';
+      document.getElementById('statusPagamento').value = 'pago';
+      document.getElementById('dataRecebimento').value = '';
+      document.getElementById('dataRecebimentoGroup').style.display = 'none';
+    }
+
+    function removerVenda(index) {
+      if (confirm('Tem certeza que deseja excluir esta venda?')) {
+        vendas.splice(index, 1);
+        localStorage.setItem('vendas', JSON.stringify(vendas));
+        atualizarTabela();
+      }
+      atualizarFiltroClientes();
+    }
+
+    function filtrarVendas() {
+      const status = document.getElementById('filtroStatus').value;
+      const mes = document.getElementById('filtroMes').value;
+      const cliente = document.getElementById('filtroCliente').value;
+      const clienteSummary = document.getElementById('clienteSummary');
+      clienteSummary.style.display = cliente !== 'todos' ? 'block' : 'none';
+      if (cliente !== 'todos') {
+        const totalClientePendente = vendas.filter(v => v.cliente === cliente && v.statusPagamento === 'pendente').reduce((total, venda) => total + venda.total, 0);
+        document.getElementById('totalReceberCliente').textContent = formatarMoeda(totalClientePendente);
+      }
+      atualizarTabela(status, mes, cliente);
+    }
+
+    function atualizarTabela(filtroStatus = 'todos', filtroMes = 'todos', filtroCliente = 'todos') {
+      const tbody = document.querySelector('#tabelaVendas tbody');
+      tbody.innerHTML = '';
+      let totalGeral = 0;
+      let totalReceber = 0;
+      let totalRecebido = 0;
+      let vendasFiltradas = vendas;
+
+      if (filtroStatus !== 'todos') {
+        vendasFiltradas = vendasFiltradas.filter(v => v.statusPagamento === filtroStatus);
+      }
+
+      if (filtroMes !== 'todos') {
+        vendasFiltradas = vendasFiltradas.filter(v => {
+          const [year, month] = v.data.split('-');
+          return parseInt(month) === parseInt(filtroMes);
+        });
+      }
+
+      if (filtroCliente !== 'todos') {
+        vendasFiltradas = vendasFiltradas.filter(v => v.cliente === filtroCliente);
+      }
+
+      vendasFiltradas.forEach((venda, index) => {
+        const tr = document.createElement('tr');
+        tr.classList.add('new-row');
+        
+        const displayDate = venda.data ? venda.data.split('-').reverse().join('/') : '-';
+        const displayRecebimento = venda.dataRecebimento ? venda.dataRecebimento.split('-').reverse().join('/') : '-';
+
+        tr.innerHTML = `
+              <td>${displayDate}</td>
+              <td>${venda.cliente}</td>
+              <td>${venda.produto}</td>
+              <td>${venda.quantidade}</td>
+              <td>${formatarMoeda(Number(venda.valorUnitario.toFixed(2)))}</td>
+              <td>${formatarMoeda(Number(venda.total.toFixed(2)))}</td>
+              <td class="status-${venda.statusPagamento}">
+                ${venda.statusPagamento === 'pago' ? 'Pago' : 'A Receber'}
+              </td>
+              <td>${displayRecebimento}</td>
+              <td>
+                <button class="delete-btn" onclick="removerVenda(${index})">Excluir</button>
+              </td>
+            `;
+
+        tr.addEventListener('contextmenu', e => showContextMenu(e, index));
+        let pressTimer;
+        tr.addEventListener('touchstart', e => {
+          pressTimer = setTimeout(() => showContextMenu(e, index), 500);
+        });
+        tr.addEventListener('touchend', () => {
+          clearTimeout(pressTimer);
+        });
+        tr.addEventListener('touchmove', () => {
+          clearTimeout(pressTimer);
+        });
+        tbody.appendChild(tr);
+        totalGeral = Number((totalGeral + venda.total).toFixed(2));
+        if (venda.statusPagamento === 'pendente') {
+          totalReceber = Number((totalReceber + venda.total).toFixed(2));
+        } else {
+          totalRecebido = Number((totalRecebido + venda.total).toFixed(2));
+        }
+      });
+
+      document.getElementById('totalVendas').textContent = formatarMoeda(totalGeral);
+      document.getElementById('totalReceber').textContent = formatarMoeda(totalReceber);
+      document.getElementById('totalRecebido').textContent = formatarMoeda(totalRecebido);
+    }
+
+    function exportToCSV() {
+      if (vendas.length === 0) {
+        alert('Não há dados para exportar!');
+        return;
+      }
+      const headers = ['Data,Cliente,Produto,Quantidade,Valor Unitário,Total,Status,Data de Recebimento\n'];
+      const csvRows = vendas.map(venda => {
+        return `${venda.data},${venda.cliente},${venda.produto},${venda.quantidade},${venda.valorUnitario},${venda.total},${venda.statusPagamento},${venda.dataRecebimento}`;
+      });
+      const csvContent = headers.concat(csvRows.join('\n'));
+      const blob = new Blob([csvContent], {
+        type: 'text/csv;charset=utf-8;'
+      });
+      const link = document.createElement('a');
+      if (navigator.msSaveBlob) {
+        navigator.msSaveBlob(blob, 'vendas.csv');
+      } else {
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute('download', 'vendas.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    }
+
+    function importFromCSV(input) {
+      const file = input.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const text = e.target.result;
+        const lines = text.split('\n');
+        lines.shift(); // Remove header
+        
+        const importedVendas = lines.filter(line => line.trim()).map(line => {
+          const [data, cliente, produto, quantidade, valorUnitario, total, statusPagamento, dataRecebimento] = line.split(',');
+          return {
+            data,  
+            cliente,
+            produto,
+            quantidade: parseFloat(quantidade),
+            valorUnitario: parseFloat(valorUnitario),
+            total: Number((parseFloat(quantidade) * parseFloat(valorUnitario)).toFixed(2)),
+            statusPagamento,
+            dataRecebimento  
+          };
+        });
+
+        vendas = [...vendas, ...importedVendas];
+        localStorage.setItem('vendas', JSON.stringify(vendas));
+        atualizarTabela();
+        atualizarFiltroClientes();
+        input.value = '';
+        alert('Dados importados com sucesso!');
+      };
+      reader.readAsText(file);
+    }
+
+    function createContextMenu() {
+      if (!contextMenu) {
+        contextMenu = document.createElement('div');
+        contextMenu.className = 'context-menu';
+        contextMenu.innerHTML = `<button onclick="editarVenda()">Editar</button>`;
+        document.body.appendChild(contextMenu);
+      }
+    }
+
+    function showContextMenu(e, index) {
+      e.preventDefault();
+      createContextMenu();
+      activeVendaIndex = index;
+      contextMenu.style.display = 'block';
+      contextMenu.style.left = `${e.pageX}px`;
+      contextMenu.style.top = `${e.pageY}px`;
+    }
+
+    function hideContextMenu() {
+      if (contextMenu) {
+        contextMenu.style.display = 'none';
+      }
+    }
+
+    function editarVenda() {
+      if (confirm('Deseja realmente modificar esta venda?')) {
+        const venda = vendas[activeVendaIndex];
+        document.getElementById('data').value = venda.data;
+        document.getElementById('cliente').value = venda.cliente;
+        document.getElementById('produto').value = venda.produto;
+        document.getElementById('quantidade').value = venda.quantidade;
+        document.getElementById('valorUnitario').value = venda.valorUnitario;
+        document.getElementById('statusPagamento').value = venda.statusPagamento;
+        document.getElementById('dataRecebimento').value = venda.dataRecebimento;
+        if (venda.statusPagamento === 'pendente') {
+          document.getElementById('dataRecebimentoGroup').style.display = 'block';
+        }
+        showForm();
+      }
+      hideContextMenu();
+    }
+
+    function voltar() {
+      const form = document.getElementById('vendaForm');
+      if (form.style.display === 'block') {
+        if (confirm('Tem certeza que deseja voltar? As alterações não serão salvas.')) {
+          form.style.display = 'none';
+          limparFormulario();
+        }
+      }
+    }
+
+    function atualizarFiltroClientes() {
+      const selectCliente = document.getElementById('filtroCliente');
+      const clientes = [...new Set(vendas.map(v => v.cliente))].sort();
+      selectCliente.innerHTML = '<option value="todos">Todos</option>';
+      clientes.forEach(cliente => {
+        const option = document.createElement('option');
+        option.value = cliente;
+        option.textContent = cliente;
+        selectCliente.appendChild(option);
+      });
+    }
+
+    function salvarDados() {
+      localStorage.setItem('vendas', JSON.stringify(vendas));
+    }
+
+    document.addEventListener('click', e => {
+      if (contextMenu && !contextMenu.contains(e.target)) {
+        hideContextMenu();
+      }
+    });
+
+    document.getElementById('filtroCliente').addEventListener('change', function (e) {
+      if (document.getElementById('vendaForm').style.display === 'block') {
+        const selectedClient = e.target.value;
+        if (selectedClient !== 'todos') {
+          document.getElementById('cliente').value = selectedClient;
+        }
+      }
+    });
+
+    function createBackup() {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const backup = {
+        vendas: vendas,
+        timestamp: timestamp
+      };
+      
+      const blob = new Blob([JSON.stringify(backup, null, 2)], {
+        type: 'application/json'
+      });
+      
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `vendas_backup_${timestamp}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function exportProject() {
+      const projectData = {
+        vendas: vendas,
+        version: '1.0',
+        exportDate: new Date().toISOString()
+      };
+      
+      const blob = new Blob([JSON.stringify(projectData, null, 2)], {
+        type: 'application/json'
+      });
+      
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'projeto_vendas.json';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function importProject(input) {
+      const file = input.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const projectData = JSON.parse(e.target.result);
+          if (Array.isArray(projectData.vendas)) {
+            if (confirm('Isso substituirá todos os dados atuais. Deseja continuar?')) {
+              vendas = projectData.vendas;
+              localStorage.setItem('vendas', JSON.stringify(vendas));
+              atualizarTabela();
+              atualizarFiltroClientes();
+              alert('Projeto importado com sucesso!');
+            }
+          } else {
+            alert('Arquivo de projeto inválido!');
+          }
+        } catch (error) {
+          alert('Erro ao importar o projeto: ' + error.message);
+        }
+        input.value = '';
+      };
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>
